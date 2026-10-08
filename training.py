@@ -1,3 +1,10 @@
+"""Freight rate prediction.
+
+Reads data/train_test.csv, validates the model with a time-based split,
+then writes validation_predictions.csv and fills data/december_chart_inputs.csv.
+
+Run:  python training.py --data-dir data --out-dir .
+"""
 import argparse
 from pathlib import Path
 
@@ -147,13 +154,14 @@ def main():
     X_fit, y_fit = X[~outlier], y[~outlier]
 
     val = load(data / "validation.csv")
-    has_quote = "quote_signal" in val and val["quote_signal"].notna().all()
     X_val = enc.transform(val)
-    if has_quote:
-        print(
-            f"\nvalidation days where quote_signal is reliable: {X_val['quote_ok'].mean():.0%} of rows")
+    # quote_signal is used only if validation.csv has days where it is reliable
+    reliable_share = X_val["quote_ok"].mean() if "quote_ok" in X_val else 0.0
+    use_quote = reliable_share > 0
+    print(
+        f"\nvalidation: quote_signal reliable on {reliable_share:.0%} of rows -> use quote_signal = {use_quote}")
     sub = pd.DataFrame({"load_id": val["load_id"], "predicted_rate": predict(
-        X_fit, y_fit, X_val, has_quote)})
+        X_fit, y_fit, X_val, use_quote)})
     sub["predicted_rate"] = sub["predicted_rate"].clip(lower=1).round(2)
     template = pd.read_csv(
         data / "validation_predictions_template.csv", usecols=["load_id"])

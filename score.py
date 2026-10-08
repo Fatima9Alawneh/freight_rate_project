@@ -1,4 +1,7 @@
 from __future__ import annotations
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
 
 import argparse
 from pathlib import Path
@@ -6,9 +9,6 @@ from pathlib import Path
 import matplotlib
 
 matplotlib.use("Agg")
-import matplotlib.pyplot as plt
-import numpy as np
-import pandas as pd
 
 
 EXPECTED_ROWS = 12_000
@@ -58,13 +58,15 @@ def validate_predictions(predictions: pd.DataFrame) -> None:
             f"(missing={len(missing)}, extra={len(extra)})"
         )
 
-    predicted_rate = numeric_series(predictions, "predicted_rate", "predictions")
+    predicted_rate = numeric_series(
+        predictions, "predicted_rate", "predictions")
     if (predicted_rate <= 0).any():
         fail("predictions contains non-positive predicted_rate values")
 
 
 def validate_december(frame: pd.DataFrame) -> pd.DataFrame:
-    columns = ["pickup", "delivery", "distance", "equipment", "weight", "date", "predicted_rate"]
+    columns = ["pickup", "delivery", "distance",
+               "equipment", "weight", "date", "predicted_rate"]
     if list(frame.columns) != columns:
         fail("December predictions must keep the original seven columns and column order")
 
@@ -72,9 +74,11 @@ def validate_december(frame: pd.DataFrame) -> pd.DataFrame:
     result["date"] = pd.to_datetime(result["date"], errors="coerce")
     if result["date"].isna().any():
         fail("December predictions contains invalid dates")
-    result["distance"] = numeric_series(result, "distance", "December predictions")
+    result["distance"] = numeric_series(
+        result, "distance", "December predictions")
     result["weight"] = numeric_series(result, "weight", "December predictions")
-    result["predicted_rate"] = numeric_series(result, "predicted_rate", "December predictions")
+    result["predicted_rate"] = numeric_series(
+        result, "predicted_rate", "December predictions")
 
     if result["date"].duplicated().any():
         fail("December predictions contains duplicate dates")
@@ -114,7 +118,8 @@ def save_december_chart(december: pd.DataFrame, output: Path) -> None:
         color=color,
         alpha=0.08,
     )
-    axis.set_title("Candidate: December 2025 Predicted Load Rate", loc="left", fontsize=15, fontweight="bold", pad=12)
+    axis.set_title("Candidate: December 2025 Predicted Load Rate",
+                   loc="left", fontsize=15, fontweight="bold", pad=12)
     axis.set_ylabel("Predicted rate ($)")
     axis.grid(axis="y", color="#D9E2E4", linewidth=0.8)
     axis.spines[["top", "right"]].set_visible(False)
@@ -137,7 +142,8 @@ def main() -> None:
     parser = argparse.ArgumentParser(
         description="Validate candidate output files and generate the fixed December chart."
     )
-    parser.add_argument("--predictions", required=True, help="CSV with load_id,predicted_rate")
+    parser.add_argument("--predictions", required=True,
+                        help="CSV with load_id,predicted_rate")
     parser.add_argument(
         "--december-predictions",
         required=True,
@@ -147,7 +153,8 @@ def main() -> None:
     args = parser.parse_args()
 
     validate_predictions(read_csv(Path(args.predictions), "predictions"))
-    december = validate_december(read_csv(Path(args.december_predictions), "December predictions"))
+    december = validate_december(
+        read_csv(Path(args.december_predictions), "December predictions"))
     output = Path(args.output_dir)
     output.mkdir(parents=True, exist_ok=True)
     chart = output / "candidate_december.png"

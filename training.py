@@ -150,7 +150,6 @@ def main():
             print(
                 f"\n{name}\n{res.round(2)}\nmean:\n{res.mean().round(2).to_string()}")
 
-    # final model: all development data, outliers removed
     X_fit, y_fit = X[~outlier], y[~outlier]
 
     val = load(data / "validation.csv")
@@ -169,7 +168,6 @@ def main():
     assert sub["predicted_rate"].notna().all() and len(sub) == len(template)
     sub.to_csv(out / "validation_predictions.csv", index=False)
 
-    # December file has no quote_signal, so it always uses the model without it
     december = pd.read_csv(data / "december_chart_inputs.csv")
     X_dec = enc.transform(load(data / "december_chart_inputs.csv"))
     december["predicted_rate"] = predict(

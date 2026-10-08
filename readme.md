@@ -1,25 +1,24 @@
-# Freight Rate Prediction Challenge
+# Freight Rate Prediction
 
-See `Freight_Rate_ML_Assessment.pdf` for the assessment instructions.
+See `freight-rate-ml-assessment.pdf` for the assessment.
 
-## What to do
+## Setup
+pip install -r requirements.txt
 
-1. Train and validate your model using `data/train_test.csv`.
-2. Predict every load in `data/validation.csv`. Each load has a unique `load_id`.
-3. Fill the matching `predicted_rate` values in `data/validation_predictions_template.csv` and save it as `validation_predictions.csv`.
-4. Predict every row in `data/december_chart_inputs.csv` by filling its `predicted_rate` column.
-5. Install the scorer requirements and run:
+Put the four data files in a folder named `data/`:
+train_test.csv, validation.csv, validation_predictions_template.csv, december_chart_inputs.csv
 
-```bash
-python -m pip install -r requirements.txt
+## Run
+python training.py --data-dir data --out-dir .
 python score.py --predictions validation_predictions.csv --december-predictions data/december_chart_inputs.csv
-```
 
-The scorer validates both files and creates `scorer_results/candidate_december.png`.
+Use `--no-cv` to skip the cross-validation (it takes a few minutes).
 
-## Submit
+## Outputs
+- validation_predictions.csv: predictions for the 12,000 validation loads
+- data/december_chart_inputs.csv: December predictions
+- scorer_results/candidate_december.png: chart made by score.py
 
-- GitHub repository containing your code, dependencies, and run instructions
-- `validation_predictions.csv`
-- PDF or DOCX report containing your validation, data split approach and `candidate_december.png`
-- 2-3 minute Loom link
+## Approach
+Time-based validation (train on past months, test on the next month),
+gradient boosting on log(rate), corrupted prices removed from training.
